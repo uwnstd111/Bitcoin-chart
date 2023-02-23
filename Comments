@@ -1,0 +1,75 @@
+--- Scrapping preview with 'td' & 'th' tags ---
+
+for row in rows:
+    cells = row.find_all(['td', 'th'])
+    for cell in cells:
+        print(cell.name, cell.attrs)
+
+--- BS4 ---
+
+url = "https://pl.investing.com/crypto/bitcoin/historical-data"
+request_site = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+webpage = urlopen(request_site).read()
+
+a = BeautifulSoup(webpage, 'html.parser')
+a = a.prettify()
+
+--- DATE CONVERSION ---
+date_ = datetime.strptime(date_, '%d.%m.%Y')
+
+--- Static column rename ---
+content_df.columns = ['index', 'Data', 'Zamknięcie', 'Otwarcie', 'Max', 'Min']
+
+--- column type change ---
+# content_df['Zamknięcie'] = content_df['Zamknięcie'].astype(float)
+# content_df['Otwarcie'] = content_df['Otwarcie'].astype(float)
+# content_df['Max'] = content_df['Max'].astype(float)
+# content_df['Min'] = content_df['Min'].astype(float)
+# content_df['index'] = content_df['index'].astype(int)
+
+--- t.b.c. ^^^ ---
+
+# col_to_type(content_df, 'Zamknięcie', float)
+# col_to_type(content_df, 'Otwarcie', float)
+# col_to_type(content_df, 'Max', float)
+# col_to_type(content_df, 'Min', float)
+# col_to_type(content_df, 'index', int)
+
+--- sorting descending by implicit index ---
+
+# content_df = content_df.sort_index(axis=0, ascending=False)
+
+--- Bar plots ---
+
+plt.bar(up['index'], up['Zamknięcie'] - up['Otwarcie'], width, bottom=up['Otwarcie'],
+#         color=col1)
+# plt.bar(up['index'], up['Max'] - up['Zamknięcie'], width2, bottom=up['Zamknięcie'], color=col1)
+# plt.bar(up['index'], up['Min'] - up['Otwarcie'], width2, bottom=up['Otwarcie'],
+#         color=col1)
+#
+# # plot down prices
+# plt.bar(down['index'], down['Zamknięcie'] - down['Otwarcie'], width, bottom=down['Otwarcie'],
+#         color=col2)
+# plt.bar(down['index'], down['Max'] - down['Otwarcie'], width2, bottom=down['Otwarcie'],
+#         color=col2)
+# plt.bar(down['index'], down['Min'] - down['Zamknięcie'], width2, bottom=down['Zamknięcie'],
+#         color=col2)
+
+--- idk. ---
+# plt.plot(x1[:MA_iter[1]], x2[1])
+# plt.plot(x1[:MA_iter[2]], x2[2])
+
+--- plotting MA ---
+for ind in range(0, 3):
+    if MA_iter[ind] < len(y):
+        plt.plot(x1[MA_iter[ind] - 1:len(x2[ind]) + MA_iter[ind]], x2[ind])
+    else:
+        print("Średnia krocząca nie może przekraczać ilości świec")
+
+--- plot ---
+# font1 = {'family': 'serif', 'color': 'blue', 'size': 20}
+# font2 = {'family': 'serif', 'color': 'darkred', 'size': 15}
+# plt.title("Wykres BTC", fontdict=font1)
+# plt.xlabel("Data", fontdict=font2)
+# plt.ylabel("Cena", fontdict=font2)
+# plt.xlim([datetime.today() - timedelta(days=32), datetime.today() + timedelta(days=1)])
