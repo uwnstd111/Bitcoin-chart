@@ -1,6 +1,10 @@
 import numpy as np
 import pandas as pd
 from main import content_df, plt, list_col_names
+import mplcyberpunk
+import math
+from PIL import Image
+import sys
 
 
 def MovingAverage():
@@ -38,31 +42,48 @@ def initiate_bars(df, width, width2, col1, col2):
             color=col2)
 
 
-# create figure
-# plot bar prices
+def gaussian(x, a, b, c, d=0):
+    return a * math.exp(-(x - b)**2 / (2 * c**2)) + d
 
+
+# def load_image(path=sys.argv[1]):
+#     image = Image.open(path)
+#     im = image.load()
+#     SIZE = image.size
+#     return im
+
+
+# create figure
 fig = plt.figure()
-fig.patch.set_facecolor('lightblue')
+fig.patch.set_facecolor('black')
+
+#   plt.savefig(load_image(), facecolor=fig.get_facecolor(), transparent=True)
+plt.style.use("cyberpunk")
 initiate_bars(content_df, .4, .05, 'red', 'green')
 x = content_df[list_col_names[1]]
 x1 = pd.Series(np.arange(0, 32, 1, dtype=int))  # .to_numpy()
-# print(content_df['Zamknięcie'].dtype)
 y = content_df[list_col_names[2]]
 y1 = content_df[list_col_names[2]].to_numpy()
+y_min = content_df[list_col_names[5]].min()
+y_max = content_df[list_col_names[4]].max()
+d = y_max - y[0]
+dy = y_max - y_min
+threshold = 0.015
+fig.text(0.9035, 1 - d / dy + threshold, str(y[0]), fontsize=9, bbox={'facecolor': 'red', 'alpha': 0.75, 'pad': 2})
 MA_iter = [7, 10, 21]
 x2 = [moving_average(y, MA_iter[0]), moving_average(y, MA_iter[1]), moving_average(y, MA_iter[2])]
-z = np.polyfit(x1, y1, 5)
+z = np.polyfit(x1, y1, 8)
 p = np.poly1d(z)
 
 MovingAverage()
-
-
-
-#   plot exec.
 plt.xticks(rotation=45, ha='right')
 print(x)
-print(y)
-plt.plot(x, y)
+print(y[len(y) - 1])
+plt.plot(x, y, linestyle='--')
+plt.axhline(y=y[0], linestyle='-.')
+# fig.canvas.mpl_connect('close_event', on_close)
+
+# plt.text(0.35, 0.5, 'Close Me!', dict(size=30))
 plt.plot(x1, p(x1))
 plt.grid(True)
 plt.show()

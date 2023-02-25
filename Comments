@@ -73,3 +73,7 @@ for ind in range(0, 3):
 # plt.xlabel("Data", fontdict=font2)
 # plt.ylabel("Cena", fontdict=font2)
 # plt.xlim([datetime.today() - timedelta(days=32), datetime.today() + timedelta(days=1)])
+
+--- replacing col_names ---
+# def rename_df_cols(df, list):
+#     df.columns = list
