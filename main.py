@@ -1,14 +1,7 @@
-import random
 from data_analysis import *
-
-import re
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-from datetime import datetime, timedelta
 from urllib.request import Request, urlopen
-
-from bs4 import BeautifulSoup
+import numpy as np
+import pandas as pd
 
 content = []
 list_col_names = ['index', 'Data', 'Zamknięcie', 'Otwarcie', 'Max', 'Min']
@@ -80,4 +73,4 @@ rename_df_cols(content_df, list_col_names)
 regex(content_df, list_col_names[2], '.', '', True)
 regex(content_df, list_col_names[2], ',', '.', False)
 df_to_type(content_df, list_col_names)
-content_df = content_df.iloc[::-1]  #  Sorting main scrapped data, index order dependent
+content_df = content_df.iloc[::-1]  # Sorting main scrapped data, index order dependent

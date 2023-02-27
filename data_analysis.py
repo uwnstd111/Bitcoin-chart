@@ -1,10 +1,50 @@
+import math
+import re
+from urllib.request import urlopen
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from main import content_df, plt, list_col_names
+from bs4 import BeautifulSoup
+from constants import *
+from twisted.internet import task, reactor
+from main import content_df, list_col_names, request_site
 import mplcyberpunk
-import math
-from PIL import Image
-import sys
+
+
+def loop_price():
+    refresh_price('td', 'th', 'first left bold noWrap', 'redFont', 'greenFont')
+    pass
+
+
+def refresh_price(*args):
+    html = urlopen(request_site).read()
+    bs = BeautifulSoup(html, 'html.parser')
+    rows = bs.find_all('tr')
+    if args[4] in str(rows[1]):
+        cena = rows[1].find(args[0], class_=args[4])
+        print(cena)
+    else:
+        cena = rows[1].find(args[0], class_=args[3])
+
+    if cena is not None:
+        cena = re.findall("[0-9]+", str(cena.attrs))
+        if cena and len(cena) > 2:
+            cena = float(cena[0] + cena[1] + "." + cena[2])
+        set_actual_price_text(cena, open_price)
+
+
+def set_actual_price_text(close_price, open_price):
+    ax = fig.gca()
+    if close_price < open_price:
+        ax.annotate(y[0], xy=(actual_x_index, y[0]), bbox={'facecolor': chart_colors[0], 'alpha': 0.75, 'pad': 2})
+        plt.axhline(y=y[0], linestyle='-.', color=chart_colors[0])
+    else:
+        ax.annotate(y[0], xy=(actual_x_index, y[0]),
+                    bbox={'facecolor': chart_colors[1], 'alpha': 0.75, 'pad': 2})
+        plt.axhline(y=y[0], linestyle='-.', color=chart_colors[1])
+
+    plt.show()
+    plt.pause(10)
 
 
 def MovingAverage():
@@ -22,8 +62,6 @@ def moving_average(x, w):
 def initiate_bars(df, width, width2, col1, col2):
     down = content_df[df[list_col_names[2]] >= df[list_col_names[3]]]
     up = content_df[df[list_col_names[2]] < df[list_col_names[3]]]
-    print(f"Up:{up}")
-    print(f"Down:{down}")
     plt.bar(up[list_col_names[0]], up[list_col_names[2]] - up[list_col_names[3]], width, bottom=up[list_col_names[3]],
             color=col1)
     plt.bar(up[list_col_names[0]], up[list_col_names[4]] - up[list_col_names[2]], width2, bottom=up[list_col_names[2]],
@@ -43,47 +81,31 @@ def initiate_bars(df, width, width2, col1, col2):
 
 
 def gaussian(x, a, b, c, d=0):
-    return a * math.exp(-(x - b)**2 / (2 * c**2)) + d
-
-
-# def load_image(path=sys.argv[1]):
-#     image = Image.open(path)
-#     im = image.load()
-#     SIZE = image.size
-#     return im
+    return a * math.exp(-(x - b) ** 2 / (2 * c ** 2)) + d
 
 
 # create figure
 fig = plt.figure()
 fig.patch.set_facecolor('black')
-
-#   plt.savefig(load_image(), facecolor=fig.get_facecolor(), transparent=True)
 plt.style.use("cyberpunk")
-initiate_bars(content_df, .4, .05, 'red', 'green')
+initiate_bars(content_df, .4, .05, chart_colors[0], chart_colors[1])
 x = content_df[list_col_names[1]]
 x1 = pd.Series(np.arange(0, 32, 1, dtype=int))  # .to_numpy()
 y = content_df[list_col_names[2]]
 y1 = content_df[list_col_names[2]].to_numpy()
+x2 = [moving_average(y, MA_iter[0]), moving_average(y, MA_iter[1]), moving_average(y, MA_iter[2])]
 y_min = content_df[list_col_names[5]].min()
 y_max = content_df[list_col_names[4]].max()
-d = y_max - y[0]
-dy = y_max - y_min
-threshold = 0.015
-fig.text(0.9035, 1 - d / dy + threshold, str(y[0]), fontsize=9, bbox={'facecolor': 'red', 'alpha': 0.75, 'pad': 2})
-MA_iter = [7, 10, 21]
-x2 = [moving_average(y, MA_iter[0]), moving_average(y, MA_iter[1]), moving_average(y, MA_iter[2])]
+open_price = content_df[list_col_names[3]][0]
 z = np.polyfit(x1, y1, 8)
 p = np.poly1d(z)
-
 MovingAverage()
 plt.xticks(rotation=45, ha='right')
-print(x)
-print(y[len(y) - 1])
 plt.plot(x, y, linestyle='--')
-plt.axhline(y=y[0], linestyle='-.')
-# fig.canvas.mpl_connect('close_event', on_close)
-
-# plt.text(0.35, 0.5, 'Close Me!', dict(size=30))
 plt.plot(x1, p(x1))
 plt.grid(True)
-plt.show()
+plt.ion()
+# looping
+loop = task.LoopingCall(loop_price)
+loop.start(timeout)
+reactor.run()

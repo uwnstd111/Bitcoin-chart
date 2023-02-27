@@ -77,3 +77,9 @@ for ind in range(0, 3):
 --- replacing col_names ---
 # def rename_df_cols(df, list):
 #     df.columns = list
+
+
+#   plt.savefig(load_image(), facecolor=fig.get_facecolor(), transparent=True)
+
+        # fig.text(actual_price_x, 1 - d / dy + threshold, str(close_price), fontsize=9,
+        #          bbox={'facecolor': chart_colors[0], 'alpha': 0.75, 'pad': 2})
