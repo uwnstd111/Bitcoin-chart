@@ -1,5 +1,6 @@
 from data_analysis import *
 from urllib.request import Request, urlopen
+from btc_automation import *
 import numpy as np
 import pandas as pd
 
@@ -41,6 +42,7 @@ def append_data(*args) -> None:
         cells = result.find_all([args[0], args[1]])
         for cell, name in zip(cells, args[5][-5:]):
             string = re.findall("[0-9]+", str(cell.attrs))
+            print(string)
             if string and len(string) > 2:
                 string = string[0] + string[1] + "." + string[2]
 
@@ -74,3 +76,4 @@ regex(content_df, list_col_names[2], '.', '', True)
 regex(content_df, list_col_names[2], ',', '.', False)
 df_to_type(content_df, list_col_names)
 content_df = content_df.iloc[::-1]  # Sorting main scrapped data, index order dependent
+save_to_excel(content_df)

@@ -97,12 +97,16 @@ x2 = [moving_average(y, MA_iter[0]), moving_average(y, MA_iter[1]), moving_avera
 y_min = content_df[list_col_names[5]].min()
 y_max = content_df[list_col_names[4]].max()
 open_price = content_df[list_col_names[3]][0]
-z = np.polyfit(x1, y1, 8)
-p = np.poly1d(z)
-MovingAverage()
+print(len(x1))
+print(len(y1))
+
 plt.xticks(rotation=45, ha='right')
 plt.plot(x, y, linestyle='--')
-plt.plot(x1, p(x1))
+if len(x1) == len(y1):
+    z = np.polyfit(x1, y1, 8)
+    p = np.poly1d(z)
+    MovingAverage()
+    plt.plot(x1, p(x1))
 plt.grid(True)
 plt.ion()
 # looping
