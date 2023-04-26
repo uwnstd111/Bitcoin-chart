@@ -1,27 +1,18 @@
-from data_analysis import *
-from urllib.request import Request, urlopen
-from btc_automation import *
+from data_analysis import init_fig, re, DataFrame, ResultSet, list_col_names, establish_data
+from btc_automation import save_to_excel
 import numpy as np
 import pandas as pd
 
 
 def main():
-    content = []
-    list_col_names = ['index', 'Data', 'Zamknięcie', 'Otwarcie', 'Max', 'Min']
-    open_, max_, min_ = "", "", ""
-    url = "https://pl.investing.com/crypto/bitcoin/historical-data"
-    request_site = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    webpage = urlopen(request_site).read()
-    a = BeautifulSoup(webpage, 'html.parser')
-    rows = a.find_all('tr')
+    request_site, rows = establish_data()
     df_temp = pd.Series(np.arange(31, -1, -1, dtype=int))  # Reversed index column
-    append_data(content, rows, 'td', 'th', 'first left bold noWrap', 'greenFont', 'redFont', list_col_names)
+    content = append_data([], rows, 'td', 'th', 'first left bold noWrap', 'greenFont', 'redFont', list_col_names)
     content_df = pd.DataFrame(content)  # DF Load
     content_df = content_df.reset_index()  # Index as new column
     content_df['index'] = df_temp  # Assigning temp reversed index column as main callable index column
 
     #   Data managing, types changes and regexes
-
     rename_df_cols(content_df, list_col_names)
     regex(content_df, list_col_names[2], '.', '', True)
     regex(content_df, list_col_names[2], ',', '.', False)
@@ -32,29 +23,29 @@ def main():
     save_to_excel(content_df)
 
 
-def regex(df, col_name, what_to_replace, replacer, regex_bool):
+def regex(df: DataFrame, col_name: list[str], what_to_replace: str, replacer: str, regex_bool: bool) -> None:
     df[col_name] = df[col_name].str.replace(what_to_replace, replacer, regex=regex_bool)
 
 
-def rename_df_cols(*args):
+def rename_df_cols(*args: (DataFrame, list[str])) -> None:
     args[0].columns = args[1]
 
 
-def col_to_type(df, name, type):
-    df[name] = df[name].astype(type)
+def col_to_type(df: DataFrame, name: str, _type: type) -> None:
+    df[name] = df[name].astype(_type)
 
 
-def df_to_type(df, list):
-    for i in range(0, len(list)):
-        reg_list = re.findall("[0-9]+", str(df[list[i]].values[0]))
+def df_to_type(df: DataFrame, _list: list[str]) -> None:
+    for i in range(0, len(_list)):
+        reg_list = re.findall("[0-9]+", str(df[_list[i]].values[0]))
         if i < 1:
-            col_to_type(df, list[i], int)
+            col_to_type(df, _list[i], int)
         elif not (len(reg_list[0]) == 2 and len(reg_list[1]) == 2):  # without 'date', date regex validation
-            col_to_type(df, list[i], float)
+            col_to_type(df, _list[i], float)
 
 
-def append_data(content, rows, *args) -> None:
-    global open_, max_, min_
+def append_data(content: list, rows: ResultSet, *args: (str, ..., str, list[str])) -> list:
+    open_, max_, min_ = "", "", ""
     for result in rows:
         cells = result.find_all([args[0], args[1]])
         for cell, name in zip(cells, args[5][-5:]):
@@ -79,8 +70,8 @@ def append_data(content, rows, *args) -> None:
         if date is not None and cena is not None:
             date_ = date.text
             content.append([date_, cena.text, open_, max_, min_])
+    return content
 
 
 if __name__ == '__main__':
     main()
-
