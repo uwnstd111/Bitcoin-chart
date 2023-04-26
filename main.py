@@ -4,15 +4,32 @@ from btc_automation import *
 import numpy as np
 import pandas as pd
 
-content = []
-list_col_names = ['index', 'Data', 'Zamknięcie', 'Otwarcie', 'Max', 'Min']
-open_, max_, min_ = "", "", ""
-url = "https://pl.investing.com/crypto/bitcoin/historical-data"
-request_site = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-webpage = urlopen(request_site).read()
-a = BeautifulSoup(webpage, 'html.parser')
-rows = a.find_all('tr')
-df_temp = pd.Series(np.arange(31, -1, -1, dtype=int))  # Reversed index column
+
+def main():
+    content = []
+    list_col_names = ['index', 'Data', 'Zamknięcie', 'Otwarcie', 'Max', 'Min']
+    open_, max_, min_ = "", "", ""
+    url = "https://pl.investing.com/crypto/bitcoin/historical-data"
+    request_site = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    webpage = urlopen(request_site).read()
+    a = BeautifulSoup(webpage, 'html.parser')
+    rows = a.find_all('tr')
+    df_temp = pd.Series(np.arange(31, -1, -1, dtype=int))  # Reversed index column
+    append_data(content, rows, 'td', 'th', 'first left bold noWrap', 'greenFont', 'redFont', list_col_names)
+    content_df = pd.DataFrame(content)  # DF Load
+    content_df = content_df.reset_index()  # Index as new column
+    content_df['index'] = df_temp  # Assigning temp reversed index column as main callable index column
+
+    #   Data managing, types changes and regexes
+
+    rename_df_cols(content_df, list_col_names)
+    regex(content_df, list_col_names[2], '.', '', True)
+    regex(content_df, list_col_names[2], ',', '.', False)
+    df_to_type(content_df, list_col_names)
+    content_df = content_df.iloc[::-1]  # Sorting main scrapped data, index order dependent
+    init_fig(content_df, list_col_names, request_site)
+
+    save_to_excel(content_df)
 
 
 def regex(df, col_name, what_to_replace, replacer, regex_bool):
@@ -36,7 +53,7 @@ def df_to_type(df, list):
             col_to_type(df, list[i], float)
 
 
-def append_data(*args) -> None:
+def append_data(content, rows, *args) -> None:
     global open_, max_, min_
     for result in rows:
         cells = result.find_all([args[0], args[1]])
@@ -64,16 +81,6 @@ def append_data(*args) -> None:
             content.append([date_, cena.text, open_, max_, min_])
 
 
-append_data('td', 'th', 'first left bold noWrap', 'greenFont', 'redFont', list_col_names)
-content_df = pd.DataFrame(content)  # DF Load
-content_df = content_df.reset_index()  # Index as new column
-content_df['index'] = df_temp  # Assigning temp reversed index column as main callable index column
+if __name__ == '__main__':
+    main()
 
-#   Data managing, types changes and regexes
-
-rename_df_cols(content_df, list_col_names)
-regex(content_df, list_col_names[2], '.', '', True)
-regex(content_df, list_col_names[2], ',', '.', False)
-df_to_type(content_df, list_col_names)
-content_df = content_df.iloc[::-1]  # Sorting main scrapped data, index order dependent
-save_to_excel(content_df)
