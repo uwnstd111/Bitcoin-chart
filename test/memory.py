@@ -48,3 +48,14 @@ class TestMemory:
 
         assert isinstance(url_lib, LazyImport)
         assert mem1 < mem2
+
+    def testMemoryPerf(self):
+        l = [i for i in range(100000)]
+        print(sum(l))
+        mem1 = get_memory_usage()
+        del l
+        gen = (i for i in range(100000))
+        print(sum(gen))
+        mem2 = get_memory_usage()
+        del gen
+        assert mem1 > mem2
